@@ -107,6 +107,15 @@ P3-7 仍作为明确测试缺口保留：需要空目录 + 未选模型在可达
 
 用户在收到具体候选范围与未验证风险说明后再次明确要求发版。本次发布候选基于 `ec3b53d7`，包括已提交的聊天续接、Astra/OAuth/Fable 5.1 与官网更新，不包含原工作区未提交的 TokenDance 接入。隔离候选 `CODEX_DISABLED=1 npm test`：5518 pass / 1 skip / 0 fail，正式 Next build 通过；日志 `/private/tmp/codepilot-release-candidate-tests.log`、`/private/tmp/codepilot-release-candidate-build.log`。
 
-用户接受本次真实账号生成、各平台 packaged runtime recovery 与 Codex 至少 15 分钟 warmup soak 尚未完成的风险，允许直接发布；这些项目仍为未验证，不记作 Smoke passed。Release Notes 已列明。签名、公证、三平台构建、公开资产与自动更新 metadata 门禁继续执行，不因这次决定豁免。管理员 API 已确认 Immutable Releases enabled=true，main 与 v* ruleset active、无 bypass/exclude；确认变量已按真实状态刷新。当前状态为发布准备，Shipped 需等待 tag CI 终态及公开资产复核。
+用户接受本次真实账号生成、各平台 packaged runtime recovery 与 Codex 至少 15 分钟 warmup soak 尚未完成的风险，允许直接发布；这些项目仍为未验证，不记作 Smoke passed。Release Notes 已列明。签名、公证、三平台构建、公开资产与自动更新 metadata 门禁继续执行，不因这次决定豁免。管理员 API 已确认 Immutable Releases enabled=true，main 与 v* ruleset active、无 bypass/exclude；确认变量已按真实状态刷新。发布准备时等待 tag CI 终态及公开资产复核；最终结果见下方 Shipped 记录。
 
 提交门禁环境诊断：worktree 的 Git hook 继承 `GIT_DIR`，导致 Git 初始化测试把全新临时目录误认为现有仓库；显式注入该变量复现 1 fail，清洁环境 2 pass。仅为本次提交使用临时 hook wrapper，清理 Git 局部环境变量后完整执行原 `.husky/pre-commit`；没有跳过测试、改写产品代码或持久修改 hooks 配置。证据 `/private/tmp/codepilot-release-git-env-{repro,clean}.log`。
+
+
+### Shipped — v0.67.14（2026-09-05）
+
+发布提交 `024041d3fc6cc3918bdc68cd60aeae1649280965` 已推送 main 与不可变 tag `v0.67.14`。[正式 CI 33950667504](https://github.com/op7418/CodePilot/actions/runs/33950667504) 全部 success：source、macOS、Windows、Linux x64/arm64、Intel universal ABI、release 均通过。macOS 签名、公证、Gatekeeper 与 packaged 启动门禁由正式 CI 验证。
+
+[公开 Release](https://github.com/op7418/CodePilot/releases/tag/v0.67.14) 已复核非 draft、非 prerelease、Latest=true、immutable=true、20 项精确版本资产齐全；Release 正文与候选 RELEASE_NOTES 一致。全部公开资产 API SHA-256 digest 与 checksum 对齐；实际下载 universal ZIP（269131558 bytes）与 Windows NSIS（154550314 bytes），两份 metadata 的 version、单一同版本 basename URL、size、SHA-512 与下载字节匹配，更新包 SHA-256、外置 blockmap/checksum coverage 通过，无 Linux updater metadata。证据 `/private/tmp/codepilot-v0.67.14-public/{ci.json,release.json,latest.json,audit.log}`。
+
+状态为 Shipped。此前用户接受的真实账号生成、运行期 recovery、Codex 15 分钟 soak 和真实 Windows 升级 smoke 缺口仍开放；启动期 package health 与资产审计不代替这些验证。TokenDance 未提交改动未包含在本 tag。

@@ -290,6 +290,23 @@ export async function listCodexModels(
   return fetchPromise;
 }
 
+/** Execution-only discovery using the ALREADY running client supplied by the
+ * caller. Passive model feeds must continue using cacheOnly instead. */
+export async function getCodexModelForTurn(
+  modelId: string | undefined,
+  getRunningServer: GetCodexAppServerFn,
+): Promise<CodexModel | undefined> {
+  const find = (models: readonly CodexModel[]) => models.find(m => m.id === modelId || m.model === modelId);
+  const cached = find(await listCodexModels({ cacheOnly: true }));
+  if (cached) return cached;
+  try {
+    return find(await listCodexModels({ timeoutMs: DEFAULT_FETCH_TIMEOUT_MS }, getRunningServer));
+  } catch {
+    // Explicit unknown capability keeps historical image downgrade honest.
+    return undefined;
+  }
+}
+
 /** Drop the in-memory model cache. Call on account change / logout. */
 export function invalidateCodexModelsCache(): void {
   cache = null;

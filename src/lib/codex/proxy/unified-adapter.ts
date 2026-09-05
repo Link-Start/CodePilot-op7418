@@ -384,7 +384,11 @@ export function createUnifiedAdapter(family: string): ResponsesAdapter {
       },
     );
     if (modelConfig.responsesApiAuth === 'codex_oauth' && providerOptions) {
-      providerOptions.openai = { ...providerOptions.openai, ...buildOpenAIOAuthOptions(modelConfig.modelId, input.body.reasoning?.effort) };
+      try {
+        providerOptions.openai = { ...providerOptions.openai, ...buildOpenAIOAuthOptions(modelConfig.modelId, input.body.reasoning?.effort) };
+      } catch (err) {
+        return makeErrorResult('invalid_request', err instanceof Error ? err.message : String(err), { family });
+      }
     }
     const wantsStream = input.body.stream !== false;
 

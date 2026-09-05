@@ -2,6 +2,7 @@
 import type { CatalogModel, ProviderEffortLevel } from './provider-catalog';
 import { ensureTokenFresh, getOAuthStatus, getOpenAIOAuthGeneration } from './openai-oauth-manager';
 import { extractComputeResidency } from './openai-oauth';
+import { ModelSelectionError } from './model-selection-error';
 
 const EFFORTS: ProviderEffortLevel[] = ['low', 'medium', 'high', 'xhigh', 'max'];
 // Compatibility baseline verified against openai/codex 459a79eb (2026-09-05).
@@ -26,6 +27,11 @@ export function parseOpenAIOAuthModels(payload: unknown): CatalogModel[] {
   }
   const seen = new Set<string>();
   return (payload as { models: Record<string, unknown>[] }).models.flatMap(m => {
+    // An unknown schema is a failed discovery, not an authoritative empty
+    // account. Never turn missing visibility into permission to list a model.
+    if (!m || (m.visibility !== 'list' && m.visibility !== 'hide')) {
+      throw new Error('Invalid OpenAI model catalog visibility');
+    }
     if (!m || typeof m.slug !== 'string' || !/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$/.test(m.slug)
       || m.visibility !== 'list' || seen.has(m.slug)) return [];
     seen.add(m.slug);
@@ -50,6 +56,10 @@ type CatalogCache = { generation: number; models: CatalogModel[]; at: number };
 let cache: CatalogCache | undefined;
 let pending: { generation: number; promise: Promise<void> } | undefined;
 let retryAfter = { generation: -1, at: 0 };
+
+export function isOpenAIOAuthDiscoveryPending(): boolean {
+  return pending?.generation === getOpenAIOAuthGeneration();
+}
 
 export function getOpenAIOAuthModels(): CatalogModel[] {
   return cache?.generation === getOpenAIOAuthGeneration() ? cache.models : OPENAI_OAUTH_CATALOG_MODELS;
@@ -91,7 +101,7 @@ export async function refreshOpenAIOAuthModels(): Promise<void> {
 export function buildOpenAIOAuthOptions(model: string, effort?: string) {
   const caps = getOpenAIOAuthModels().find(m => m.modelId === model)?.capabilities;
   if (effort && !caps?.supportedEffortLevels?.includes(effort as ProviderEffortLevel)) {
-    throw new Error(`OpenAI OAuth model ${model} does not advertise effort ${effort}`);
+    throw new ModelSelectionError('OPENAI_OAUTH_EFFORT_UNAVAILABLE');
   }
   return {
     store: false,

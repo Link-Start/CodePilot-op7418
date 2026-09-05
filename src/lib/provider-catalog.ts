@@ -547,6 +547,23 @@ const ANTHROPIC_FIRST_PARTY_MODELS: CatalogModel[] = [
     },
   },
   {
+    modelId: 'fable-5-1',
+    upstreamModelId: 'claude-fable-5-1',
+    displayName: 'Fable 5.1',
+    // Explicit selection; existing role defaults and Fable 5 stay unchanged.
+    // platform.claude.com/docs/en/models/fable-5-1/overview (2026-09-05).
+    capabilities: {
+      reasoning: true,
+      vision: true,
+      toolUse: true,
+      contextWindow: 1_000_000,
+      supportsEffort: true,
+      supportedEffortLevels: ['low', 'medium', 'high', 'xhigh', 'max'],
+      defaultEffortLevel: 'high',
+      supportsAdaptiveThinking: true,
+    },
+  },
+  {
     modelId: 'haiku',
     upstreamModelId: 'claude-haiku-4-5-20251001',
     displayName: 'Haiku 4.5',

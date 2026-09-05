@@ -56,3 +56,12 @@ E2E 使用隔离数据库，不能指向日常 Dev 数据；不通过真实用�
 ## 输出
 
 按 P1/P2/P3 列出具体问题、提交内文件/行号、触发路径、用户影响、最小复现和建议修复。区分本次引入、原有问题及未验证风险。不要只凭文档或测试通过关闭 finding，也不要把合理保守降级误报成静默数据丢失。最后给出能否合并/是否存在 blocker 和仍需真实 smoke 的清单；若无 actionable finding，明确说明检查范围及剩余验证边界。
+
+
+## 审查后的追加修复（2026-09-05，工作区）
+
+用户再次授权修复。关键取舍：不采纳 unknown visibility 默认可见；不静默降 effort；保持原聊天同 Runtime 切模型。新增 OAuth 非阻塞目录与 pending 后刷新、模型选择错误中英文恢复、代理参数错误封装，以及 Codex replacement 经运行中 client 有界恢复模型能力。代理真实 SDK 请求捕获现已补齐（原报告前文称两条 wire 已测、后文又承认代理缺测试，以后文缺口为当时事实）。
+
+Fable 5.1 现在已作为独立精确模型接入：共享目录/第一方 upstream/1M 窗口及五档 effort/high 默认；沿用已正确的 adaptive sanitizer。Native 双步 SDK wire 测试覆盖 prefix 与签名原样保留，旧回合重建/换模型不带旧思考签名；不扩展未验证 beta 功能或改默认模型。
+
+验证：全量 5518 pass / 1 skip，隔离 Dev E2E 2 pass；新 `fable-5-1-model.test.ts`、`fable51-review-followup.spec.ts` 及 OAuth/Codex 追加反例是重点。完整进度/日志/真实账号未验证边界见 [执行计划](../exec-plans/active/astra-openai-oauth-compatibility.md)。

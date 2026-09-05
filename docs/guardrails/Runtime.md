@@ -286,3 +286,8 @@ Provider 或模型切换后，descriptor 必须从同一 runtime-filtered group 
 - API 的 Astra 1050000 不能作为 Codex 默认窗口。`getContextWindow` 要有 `channel` 事实才返回 Astra 容量；Codex 默认有效窗口 258400、API 1050000，未给通道返回未知。
 - Codex Account 显式发送时，历史预算通过 `getCodexContextBudget` 在 2500ms 内读取 `config/read(cwd)` 的项目级配置和 CodePilot-owned home 的模型 metadata，按最大窗口限制 override 后乘 effective percent。未知/失败降为保守通道 fallback；被动模型 feed 不因此启动进程。实际 tokenUsage 的 modelContextWindow 仍是显示真源，预算不冒充用量。
 - `model/list` 消费全部分页、按 id 去重，重复 cursor 有界失败；视觉能力来自真实 inputModalities，不按型号名猜。回归在 `codex-models-dual-schema.test.ts`，包括 Astra 第二页、未知能力、覆盖至更大/更小窗口及最大值 clamp。
+
+## 2026-09-05 审查后续：冷缓存与 Fable 5.1
+
+- Codex replacement 在冷缓存时允许通过已经运行的 client 有界调用 model/list（2.5 秒），供历史图片与 effort 使用；不得借此从被动目录启动 app-server。失败继续 unknown 与显式图片降级。回归：codex-models-dual-schema。
+- Fable 5.1 使用精确 upstream `claude-fable-5-1`，作为独立选项保留旧 Fable/角色默认。adaptive 始终开启、effort low/medium/high/xhigh/max；Native 使用 auto/none 工具选择。不得为强制工具需求静默转换用户语义。多步 SDK 请求的 signed thinking 之前 system/tools/messages 必须保持不变；跨回合 DB 重建不携带过期 thinking，摘要/模型切换不得再混回旧签名。当前测试验证 Native 的真实 SDK wire，不能冒充 Anthropic 真签名校验；新增 per-message effort/turn system/progress beta 须另立协议验证。

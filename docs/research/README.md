@@ -8,7 +8,7 @@
 
 | 文件 | 主题 |
 |------|------|
-| astra-fable51-adaptation-2026-09-05.md | **Astra / Fable 5.1 与最新 OpenCode OAuth 对照**：Codex 默认 272K、有效 258.4K，区别 API 1.05M；新拉 OpenCode v1.18.29，离线复现刷新并发/网络失败清凭据及 SDK 丢 Astra reasoning，核对动态公共目录和账号区域路由；Fable 5.1 补精确目录与多轮协议回归 |
+| astra-fable51-adaptation-2026-09-05.md | **Astra / Fable 5.1 与最新 OpenCode OAuth 对照**：Codex 默认 272K、有效 258.4K，区别 API 1.05M；新拉 OpenCode v1.18.29，离线复现刷新并发/网络失败清凭据及 SDK 丢 Astra reasoning，核对动态公共目录和账号区域路由；Fable 5.1 补精确目录与多轮协议回归  后续 Fable 5.1 基础适配与审查修复已落地，验证见执行计划 |
 | gpt56-fixes-review-2026-09-05.md | **GPT-5.6 昨晚修复复审及修复闭环**：确认两项 P2（预算充足丢文本、历史图片丢失），用户授权后已补预算分页和附件恢复；最终 5485 pass / 1 skip、E2E 3/3；真实视觉 smoke 与独立复审未完成 |
 | old-chat-model-switch-diagnosis-2026-09-05.md | **旧聊天模型切换修复**：实机确认 Codex 跨 Provider 误拦截、目录未落库与 Codex 冷缓存误拒绝；保留原聊天切换与历史承接，完整单测、三引擎 E2E 和真实 Dev 旧聊天 smoke 通过 |
 | windows-model-feedback-diagnosis-2026-09-04.md | **Windows 模型反馈诊断与确定性 UI 修复**：Codex CLI 0.139.0 成功返回五项，缺 5.6 未最终定因；GLM 旧 haiku 冲突已隔离复现。获授权后仅修冲突查看清筛选、定位与双语说明，保留数据保护；页面 2/2、全量 5459 通过/1 跳过，用户真实旧行来源与添加恢复仍待确认 |

@@ -123,3 +123,10 @@ Astra 的 Composer effort 为 `low / medium / high / xhigh / max`。3220 的运�
 4. 验证：隔离模型目录/真实 SDK wire tests → 完整测试 → 原聊天 Picker E2E → 对应已授权账号的最小文本、工具和多轮 smoke。发现成功与生成成功分开记录。
 
 本轮证据为官方文档、现有代码、两个本机发现端点和离线请求捕获；没有运行完整测试（没有修改产品代码），没有真实 OAuth/Astra/Fable 5.1 生成验证。
+
+
+## 2026-09-05 用户授权后的 Fable 5.1 实施回写
+
+上文“仅调研/待适配”是原始核验时点；本次用户明确追加授权后，已新增第一方和 env 共享目录的 `fable-5-1 → claude-fable-5-1`、精确 1M 窗口与 high 默认 effort 能力。旧 Fable 5、Opus/Sonnet 角色与用户行保持原语义。官方 [overview](https://platform.claude.com/docs/en/models/fable-5-1/overview) 与 [migration guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) 于 2026-09-05 再次核实。
+
+现有 sanitizer 已支持始终 adaptive 与五档 effort，实际 Native 双步工具请求捕获确认 `output_config.effort=max`、`thinking.type=adaptive`、`tool_choice=auto`、system/tools/shared history 不变、签名重放。跨回合 DB 重建不发送旧 thinking，切换 5/5.1/Opus 可保留正文；无工具路径不发 any/tool。未添加需要新 beta 的 per-message effort、turn system、updates 或自动 refusal fallback；未宣称真实模型签名/entitlement 已通过。完整验证和剩余 smoke 见 [执行计划](../exec-plans/active/astra-openai-oauth-compatibility.md)。

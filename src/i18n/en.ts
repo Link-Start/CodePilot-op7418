@@ -4,6 +4,8 @@
  * Other locale files must implement `Record<TranslationKey, string>`.
  */
 const en = {
+  'chat.error.oauthEffortUnavailable': 'This OpenAI account no longer offers the selected reasoning effort. Choose an available effort in the model selector and retry.',
+  'chat.error.oauthCatalogEmpty': 'The OpenAI account model list is empty. Refresh the model list or sign in again, then select a model.',
   // ── Navigation ──────────────────────────────────────────────
   'nav.chats': 'Chats',
   'nav.extensions': 'Extensions',

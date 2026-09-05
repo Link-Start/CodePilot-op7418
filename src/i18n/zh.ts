@@ -1,6 +1,8 @@
 import type { TranslationKey } from './en';
 
 const zh: Record<TranslationKey, string> = {
+  'chat.error.oauthEffortUnavailable': '当前 OpenAI 账号已不支持所选推理档位。请在模型选择器中重新选择可用档位后重试。',
+  'chat.error.oauthCatalogEmpty': '当前 OpenAI 账号的模型列表为空。请刷新模型列表或重新登录，然后选择模型。',
   // ── Navigation ──────────────────────────────────────────────
   'nav.chats': '对话',
   'nav.extensions': '扩展',

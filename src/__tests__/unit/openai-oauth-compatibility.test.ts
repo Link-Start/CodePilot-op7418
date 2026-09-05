@@ -164,3 +164,96 @@ describe('OAuth catalog and actual SDK request', () => {
     assert.equal(getContextWindow('gpt-6-astra'),null);
   });
 });
+
+describe('review follow-up regressions', () => {
+  it('rejects missing/unknown visibility but accepts real empty and hidden-only catalogs', () => {
+    for (const visibility of [undefined, 'unknown']) {
+      assert.throws(() => catalog.parseOpenAIOAuthModels({models:[{...astra,visibility}]}), /visibility/);
+    }
+    assert.deepEqual(catalog.parseOpenAIOAuthModels({models:[]}), []);
+    assert.deepEqual(catalog.parseOpenAIOAuthModels({models:[{...astra,visibility:'hide'}]}), []);
+  });
+  it('retains the last valid same-account catalog on schema drift and retries after cooldown', async () => {
+    seed(true);
+    const now = Date.now;
+    let time = now(); Date.now = () => time;
+    try {
+      globalThis.fetch = async () => json({models:[astra]});
+      await catalog.refreshOpenAIOAuthModels();
+      time += 300001;
+      globalThis.fetch = async () => json({models:[{...astra,visibility:undefined}]});
+      await catalog.refreshOpenAIOAuthModels();
+      assert.equal(catalog.getOpenAIOAuthModels()[0].modelId, 'gpt-6-astra');
+      time += 30001;
+      globalThis.fetch = async () => json({models:[]});
+      await catalog.refreshOpenAIOAuthModels();
+      assert.deepEqual(catalog.getOpenAIOAuthModels(), []);
+      const {resolveProvider} = await import('../../lib/provider-resolver');
+      assert.throws(() => resolveProvider({providerId:'openai-oauth',runtime:'codepilot_runtime'}), /OPENAI_OAUTH_CATALOG_EMPTY/);
+      assert.equal(resolveProvider({providerId:'openai-oauth',model:'gpt-6-astra',runtime:'codepilot_runtime'}).model,'gpt-6-astra');
+    } finally { Date.now = now; }
+  });
+  it('returns the global feed while expired-token discovery is still pending', async () => {
+    const {GET} = await import('../../app/api/providers/models/route');
+    const {NextRequest} = await import('next/server');
+    seed(); const gate = deferred<Response>();
+    globalThis.fetch = async url => String(url).includes('/oauth/token') ? gate.promise : json({models:[astra]});
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const response = await Promise.race([
+        GET(new NextRequest('http://localhost/api/providers/models')),
+        new Promise<never>((_,reject) => { timer=setTimeout(()=>reject(Error('global feed blocked on OAuth')),1000); }),
+      ]);
+      assert.equal(response.status,200);
+      const body = await response.json();
+      assert.equal(body.model_discovery_pending,true);
+      assert.ok(body.groups.some((g:{provider_id:string})=>g.provider_id==='openai-oauth'));
+    } finally {
+      if(timer) clearTimeout(timer);
+      gate.resolve(json(tokens()));
+      await catalog.refreshOpenAIOAuthModels();
+    }
+  });
+  it('production Codex proxy forwards Astra max and headers, and contains stale-effort errors', async () => {
+    seed(true);
+    const token = jwt({'https://api.openai.com/auth':{chatgpt_compute_residency:'eu'}});
+    db.setSetting('openai_oauth_access_token',token); db.setSetting('openai_oauth_account_id','proxy-account');
+    let captured: {headers:Headers;body:Record<string,unknown>;url:string}|undefined;
+    globalThis.fetch = async (url,init) => {
+      captured={url:String(url),headers:new Headers(init?.headers),body:JSON.parse(init?.body as string)};
+      return json({error:{message:'fixture terminal error',type:'invalid_request_error'}},400);
+    };
+    const {handleProxyRequest} = await import('../../lib/codex/proxy/adapter');
+    const input = {targetProviderId:'openai-oauth',sessionId:'',workspacePath:temp,signal:new AbortController().signal,
+      body:{model:'gpt-6-astra',input:[{type:'message' as const,role:'user' as const,content:[{type:'input_text' as const,text:'fixture'}]}],
+        reasoning:{effort:'max' as const},stream:true}};
+    const result = await handleProxyRequest(input);
+    assert.equal(result.kind,'stream');
+    if(result.kind==='stream') {
+      const reader=result.body.getReader(); while(!(await reader.read()).done) { /* capture actual SDK wire */ }
+    }
+    assert.ok(captured);
+    assert.equal(captured.url,'https://chatgpt.com/backend-api/codex/responses');
+    assert.equal(captured.headers.get('authorization'),`Bearer ${token}`);
+    assert.equal(captured.headers.get('chatgpt-account-id'),'proxy-account');
+    assert.equal(captured.headers.get('x-openai-internal-codex-residency'),'eu');
+    assert.deepEqual(captured.body.reasoning && (captured.body.reasoning as {effort:string}).effort,'max');
+    assert.equal(captured.body.store,false);
+    captured=undefined;
+    globalThis.fetch = async () => json({models:[{...astra,supported_reasoning_levels:[{effort:'low'}]}]});
+    await catalog.refreshOpenAIOAuthModels();
+    const rejected=await handleProxyRequest(input);
+    assert.equal(rejected.kind,'error');
+    if(rejected.kind==='error') { assert.equal(rejected.error.code,'invalid_request'); assert.match(rejected.error.message,/OPENAI_OAUTH_EFFORT_UNAVAILABLE/); }
+    assert.equal(captured,undefined);
+  });
+  it('localizes actionable errors and preserves unknown diagnostics', async () => {
+    const {ModelSelectionError} = await import('../../lib/model-selection-error');
+    const {localizeModelSelectionError} = await import('../../lib/model-selection-error-i18n');
+    const {translate} = await import('../../i18n');
+    const error=new ModelSelectionError('OPENAI_OAUTH_EFFORT_UNAVAILABLE');
+    assert.match(localizeModelSelectionError(error.message,key=>translate('zh',key)),/重新选择/);
+    assert.match(localizeModelSelectionError(error.message,key=>translate('en',key)),/Choose/);
+    assert.equal(localizeModelSelectionError('unknown failure'),'unknown failure');
+  });
+});

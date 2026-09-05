@@ -17,6 +17,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   listCodexModels,
+  getCodexModelForTurn,
   codexUsableContextWindow,
   getCodexContextBudget,
   buildCodexProviderModelGroup,
@@ -320,4 +321,18 @@ it('reads project-effective config and same-home catalog for the selected Codex 
     else process.env.CODEPILOT_CODEX_HOME = old;
     fs.rmSync(home,{recursive:true,force:true});
   }
+});
+
+
+describe('execution-only cold model discovery', () => {
+  beforeEach(() => invalidateCodexModelsCache());
+  it('uses the running client to discover vision and reuses the warm result', async () => {
+    const found = await getCodexModelForTurn('gpt-5.6-sol', fakeServer([modelEntry({inputModalities:['text','image']})]));
+    assert.equal(found?.inputModalities.includes('image'),true);
+    const warm = await getCodexModelForTurn('gpt-5.6-sol', async () => { throw Error('must not discover twice'); });
+    assert.equal(warm,found);
+  });
+  it('keeps capability unknown when the running client cannot discover models', async () => {
+    assert.equal(await getCodexModelForTurn('gpt-5.6-sol', async () => { throw Error('offline'); }),undefined);
+  });
 });

@@ -7,6 +7,7 @@
  */
 
 import type { ApiProvider } from '@/types';
+import { ModelSelectionError } from './model-selection-error';
 import {
   type Protocol,
   type AuthStyle,
@@ -1064,6 +1065,7 @@ function buildCodexAccountResolution(opts: ResolveOptions): ResolvedProvider {
 function buildOpenAIOAuthResolution(opts: ResolveOptions): ResolvedProvider {
   const definition = getManagedVirtualProviderDefinition('openai-oauth');
   const model = opts.model || opts.sessionModel || definition.models[0]?.modelId || '';
+  if (!model) throw new ModelSelectionError('OPENAI_OAUTH_CATALOG_EMPTY');
 
   const catalogEntry = definition.models.find(m => m.modelId === model);
 

@@ -57,7 +57,7 @@ import {
   getCodexAvailability,
 } from './app-server-manager';
 import { resolveCodexEffort, resolveCodexProviderEffort } from './effort';
-import { getCachedCodexEffortLevels, getCachedCodexEffortVocabulary, listCodexModels } from './models';
+import { getCachedCodexEffortLevels, getCachedCodexEffortVocabulary, getCodexModelForTurn } from './models';
 import { getResolvedModelEffortContract, resolveProvider } from '@/lib/provider-resolver';
 import { reconcileCodexPermissionEcho, resolveCodexPermissionWire } from './permission';
 import { buildReviewEvent } from '@/lib/permission/review-event';
@@ -1064,19 +1064,19 @@ export const codexRuntime: AgentRuntime = {
           // global clamp downgraded them to `high` behind the user's back.
           // Unknown/undeclared tiers are omitted (never coerced); a cold
           // cache yields no capability info and falls back to the
-          // conservative clamp inside resolveCodexEffort. cacheOnly read —
-          // turn/start must never spawn an app-server (P0.3).
+          // conservative clamp inside resolveCodexEffort. Replacement threads
+          // may discover capabilities through the already-running client;
+          // this must never spawn an app-server from the passive feed (P0.3).
           // codex_runtime only; Claude Code / Native keep the full union.
           let codexEffort: string | undefined;
           let supportsImages: boolean | undefined;
           if (requestedProviderId === 'codex_account') {
-            const declaredEfforts = await getCachedCodexEffortLevels(options.model);
-            codexEffort = resolveCodexEffort(options.effort, declaredEfforts);
             if (!thread.resumed) {
-              const models = await listCodexModels({ cacheOnly: true });
-              const model = models.find(candidate => candidate.id === options.model || candidate.model === options.model);
+              const model = await getCodexModelForTurn(options.model, async () => ({ client }));
               supportsImages = model?.inputModalities.includes('image');
             }
+            const declaredEfforts = await getCachedCodexEffortLevels(options.model);
+            codexEffort = resolveCodexEffort(options.effort, declaredEfforts);
           } else {
             const resolvedProvider = resolveProvider({
               providerId: requestedProviderId,

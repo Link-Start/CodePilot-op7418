@@ -110,3 +110,5 @@
 - `openai-oauth-models.ts` 用独立 OAuth 凭据发现模型，不读 app-server 的账号目录。缓存绑定 generation；真实空目录不被 fallback 补回。失败沿用同账号旧目录或 bundled 兼容候选，不能将候选说成生成 entitlement 已验证。
 - Native 和 Codex provider proxy 共用 `buildOpenAIOAuthOptions`，按模型声明发送所选 effort 与 `forceReasoning`；未知能力不强开，unsupported effort 明确拒绝，不能静默改 medium。`ultra` 不进入通用菜单。
 - 回归：`openai-oauth-compatibility.test.ts` 覆盖并发、临时/永久失败、logout 竞态、DB 半写回滚、同账号目录、真实 SDK 与生产 Native max/headers；Codex 分页/窗口见 `codex-models-dual-schema.test.ts`。本轮真实 OAuth entitlement smoke 未执行（本机独立 OAuth 未登录）。
+
+- 2026-09-05 独立审查后续：全局模型 GET 不 await OAuth 网络发现，返回同账号缓存及 pending 事实；Composer 仅在 pending 时后台轮询（20 秒上限、unmount/新请求取消），不重置已加载目录。缺失/未知 visibility 是失败而不是真空目录，不能默认可见或覆盖上次有效目录。effort 失效必须明确引导重新选择，不能静默降档；空目录不能生成空默认模型。错误标记经两个 live SSE 入口和持久化消息渲染统一本地化。Codex proxy 的本地参数拒绝必须返回结构化 invalid_request。回归：openai-oauth-compatibility、fable51-review-followup E2E。

@@ -12,7 +12,7 @@
 - 修改或新增文件后更新下方索引
 - 检索本目录前先读此文件
 
-当前新增：[TokenDance 接入](active/tokendance-integration.md)（代码与自动化验证完成，真实账号/打包 smoke 待执行）。
+当前新增：[TokenDance 接入](active/tokendance-integration.md)（已随 v0.67.15 Shipped；正式 CI、20 资产与包内接口/图标复核通过，真实生成与 packaged 授权 smoke 待执行）。
 
 ## 目录语义（四类目录）
 

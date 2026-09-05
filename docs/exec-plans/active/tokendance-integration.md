@@ -1,6 +1,6 @@
 # TokenDance 接入
 
-状态：Code complete / Tests pass。用户已确认真实授权成功；真实生成与打包 smoke 待执行。用户授权接入第三方 TokenDance（2026-09-05）。
+状态：Shipped — v0.67.15 / Tests pass。正式 CI、20 资产与包内 TokenDance 接口/图标复核通过。用户已确认真实授权成功；真实生成与 packaged 授权 smoke 待执行。用户授权接入第三方 TokenDance（2026-09-05）。
 
 ## 问题与取舍
 
@@ -28,6 +28,7 @@ Native/Codex 使用受限 fetch 包装；Claude Code 经固定目标的本地 Me
 | 接入与授权 | 已完成；用户确认授权成功 |
 | 精选模型与同连接 Claude Code | 已完成；定向、E2E 与全量测试通过 |
 | 真实生成与 packaged smoke | 待执行 |
+| v0.67.15 正式发布 | Shipped；CI、公开资产与包内功能存在性复核通过 |
 
 ## Smoke Ledger（初版历史证据；最新追加结果见末尾）
 
@@ -114,3 +115,14 @@ Native/Codex 使用受限 fetch 包装；Claude Code 经固定目标的本地 Me
 发布前全量 `CODEX_DISABLED=1 npm test`：5542 pass / 1 skip / 0 fail；正式 Next build 通过；ESLint 0 errors / 44 既有 warnings。隔离 Dev 3145 复跑 TokenDance E2E 3/3 pass。构建在 `/private/tmp/codepilot-release-0.67.15` 精确快照执行，核对 47 个发布范围文件与主目录一致，未打断主目录开发服务。证据 `/private/tmp/codepilot-0.67.15-{full-tests,build,eslint,e2e}.log`。
 
 本会话已接受的真实账号/运行期 recovery/Codex soak 验证边界继续保留；TokenDance 真实授权与本机目录已验证，真实生成、CLI 多步、计费和 packaged 授权流程仍不记作通过。Release Notes 明示这些边界。签名、公证、三平台构建与公开更新资产审计仍为 CI 硬门禁。当前为发布准备，Shipped 待 CI 及公开资产复核。
+
+## Shipped — v0.67.15（2026-09-05）
+
+- [x] 完整 TokenDance 接入与版本文件提交：`ffe6b367ef2ab5397bac28ced7633ea2cc90f697`，47 文件；main 与不可变 `v0.67.15` tag 已推送。
+- [x] 提交门禁 5542 pass / 1 skip / 0 fail；发布前 E2E 3/3、正式 Next build、lint/docs drift 通过。
+- [x] [正式 CI 33957516830](https://github.com/op7418/CodePilot/actions/runs/33957516830) 全部 success：source、macOS 签名/公证/包健康、Windows、Linux 双架构、Intel universal ABI 与 release。
+- [x] [公开 Release](https://github.com/op7418/CodePilot/releases/tag/v0.67.15) 非 draft、非 prerelease、Latest=true、immutable=true，20 项精确版本资产齐全，正文与含 TokenDance 的 RELEASE_NOTES 一致。
+- [x] 所有公开资产 API SHA-256 digest 与 checksum 对齐；实际下载 universal ZIP 与 Windows NSIS，两份 metadata 的版本、单一同版本 URL、大小、SHA-512、安装包 SHA-256、blockmap/checksum coverage 全部通过；无 Linux updater metadata。
+- [x] 检查公开 universal ZIP 内的版本 0.67.15、TokenDance auth/gateway 编译路由及 manifest、包含 TokenDance 的 renderer chunks、与源码字节一致的官方 SVG；证明最终安装包确实包含该功能，不只依据源码提交。
+
+决策日志：根据用户纠正完整发布 TokenDance，不以未提交为排除理由。状态为 Shipped；真实生成、Claude CLI 多步、计费、packaged 授权及前述运行期 smoke 缺口继续开放，包内存在性与启动期 health 不冒充这些验证。证据 `/private/tmp/codepilot-v0.67.15-public/{ci.json,release.json,latest.json,audit.log,tokendance-package-audit.log}`；首次包内功能存在性核验通过。

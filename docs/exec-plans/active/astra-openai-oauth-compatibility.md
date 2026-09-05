@@ -101,3 +101,12 @@
 P3-6 静态补查：`resolveProvider` 只有 effective provider 明确为 openai-oauth 才进入该新分支，且须 model/sessionModel 均为空、目录也为空。无参数的 Doctor/默认后台解析不会仅因 OAuth 空目录进入该分支。正常 chat/task/route validation 在前置检查中要求非空会话模型；标题的 resolveExactProvider 由 generateSessionTitle 捕获并返回 provider-unavailable；子模型枚举捕获跳过不可用 Provider；上下文压缩、memory、onboarding/checkin、transport detection 有上层错误/降级边界；Settings effective provider 对虚拟 Provider 直接返回 identity 并有 catch。未发现正常后台/被动路径因此出现未处理异常的具体证据，不采用 resolver 全局吞错或恢复空 model 的建议。该结论为调用链静态核验，不冒充对所有异常历史数据的运行测试。
 
 P3-7 仍作为明确测试缺口保留：需要空目录 + 未选模型在可达入口的完整错误呈现回归（正常旧聊天发送已有非空 model 前置门，不应构造不可达状态宣称验证真实用户链路）。现有测试证明 resolver 拒绝及 effort 错误渲染，不能代替该项。此轮补查仅更新记录，产品代码与既有验证结果未改；工作区尚未提交。
+
+
+## v0.67.14 发布决定（2026-09-05）
+
+用户在收到具体候选范围与未验证风险说明后再次明确要求发版。本次发布候选基于 `ec3b53d7`，包括已提交的聊天续接、Astra/OAuth/Fable 5.1 与官网更新，不包含原工作区未提交的 TokenDance 接入。隔离候选 `CODEX_DISABLED=1 npm test`：5518 pass / 1 skip / 0 fail，正式 Next build 通过；日志 `/private/tmp/codepilot-release-candidate-tests.log`、`/private/tmp/codepilot-release-candidate-build.log`。
+
+用户接受本次真实账号生成、各平台 packaged runtime recovery 与 Codex 至少 15 分钟 warmup soak 尚未完成的风险，允许直接发布；这些项目仍为未验证，不记作 Smoke passed。Release Notes 已列明。签名、公证、三平台构建、公开资产与自动更新 metadata 门禁继续执行，不因这次决定豁免。管理员 API 已确认 Immutable Releases enabled=true，main 与 v* ruleset active、无 bypass/exclude；确认变量已按真实状态刷新。当前状态为发布准备，Shipped 需等待 tag CI 终态及公开资产复核。
+
+提交门禁环境诊断：worktree 的 Git hook 继承 `GIT_DIR`，导致 Git 初始化测试把全新临时目录误认为现有仓库；显式注入该变量复现 1 fail，清洁环境 2 pass。仅为本次提交使用临时 hook wrapper，清理 Git 局部环境变量后完整执行原 `.husky/pre-commit`；没有跳过测试、改写产品代码或持久修改 hooks 配置。证据 `/private/tmp/codepilot-release-git-env-{repro,clean}.log`。

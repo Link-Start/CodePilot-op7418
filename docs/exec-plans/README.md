@@ -12,6 +12,8 @@
 - 修改或新增文件后更新下方索引
 - 检索本目录前先读此文件
 
+当前新增：[TokenDance 接入](active/tokendance-integration.md)（代码与自动化验证完成，真实账号/打包 smoke 待执行）。
+
 ## 目录语义（四类目录）
 
 `docs/exec-plans/` 下的执行计划分四类，**AI 只从 `active/` 领任务**：

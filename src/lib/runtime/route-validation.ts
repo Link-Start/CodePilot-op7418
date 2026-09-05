@@ -85,6 +85,7 @@ export async function validateRuntimeRoute(
         modelId: model.modelId,
         upstreamModelId: model.upstreamModelId,
         providerCompat,
+        providerBaseUrl: provider.base_url,
         capabilities: model.capabilities,
       });
       if (!compat.supportedRuntimes?.includes(route.runtimeId)) {

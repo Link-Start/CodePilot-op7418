@@ -1,3 +1,5 @@
+import { isTokenDanceBaseUrl } from './tokendance';
+import { tokenDanceFetch } from './tokendance-fetch';
 /**
  * ai-provider.ts — Unified AI model factory for the native Agent Loop.
  *
@@ -253,6 +255,7 @@ function createLanguageModel(config: AiSdkConfig, isThirdPartyProxy: boolean): L
           : { apiKey: config.apiKey }),
         baseURL,
         headers,
+        ...(isTokenDanceBaseUrl(config.baseUrl) ? { fetch: tokenDanceFetch } : {}),
       });
       return anthropic(config.modelId);
     }
@@ -376,7 +379,7 @@ function createLanguageModel(config: AiSdkConfig, isThirdPartyProxy: boolean): L
         // wire. The wrapper sniffs the real MIME (png/jpeg/webp/gif/svg) and
         // prefixes it; already-schemed URLs pass through verbatim, so an
         // upstream fix cannot double-prefix.
-        fetch: withChatImageDataUrlFetch(),
+        fetch: withChatImageDataUrlFetch(isTokenDanceBaseUrl(config.baseUrl) ? tokenDanceFetch : undefined),
       });
       // Chat Completions, NOT the Responses API. In @ai-sdk/openai v3 the bare
       // `openai(modelId)` call defaults to `.responses()` (/v1/responses), but

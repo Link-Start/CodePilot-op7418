@@ -1,3 +1,4 @@
+import { TOKENDANCE_RECOVERY_ERRORS } from './tokendance';
 import { translateActive, type TranslationKey } from '@/i18n';
 import { MODEL_SELECTION_ERRORS } from './model-selection-error';
 
@@ -13,6 +14,14 @@ export function localizeModelSelectionError(
 ): string {
   for (const code of Object.keys(keys) as Array<keyof typeof keys>) {
     message = message.replace(`[${code}] ${MODEL_SELECTION_ERRORS[code]}`, t(keys[code]));
+  }
+  const recoveryKeys = {
+    top_up_balance: 'chat.error.tokenDanceTopUp',
+    reauthorize_api_key: 'chat.error.tokenDanceReauthorize',
+    api_key_quota: 'chat.error.tokenDanceQuota',
+  } as const;
+  for (const action of Object.keys(recoveryKeys) as Array<keyof typeof recoveryKeys>) {
+    message = message.replace(TOKENDANCE_RECOVERY_ERRORS[action], t(recoveryKeys[action]));
   }
   return message;
 }

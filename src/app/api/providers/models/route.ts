@@ -577,6 +577,7 @@ export async function GET(request: NextRequest) {
     // Media rows (image / video / embedding) are still dropped at
     // the row layer regardless of runtime — those don't belong in
     // chat pickers period.
+    const reasonLocale = getSetting('locale') === 'zh' ? 'zh' : 'en';
     let outGroups = groups.map(g => {
       const providerCompat = g.compat ?? 'unknown';
       // Phase 5b (2026-05-15) — the built-in `env` Claude Code default
@@ -594,6 +595,8 @@ export async function GET(request: NextRequest) {
         .map(m => {
           const normalized = normalizeModelCapabilitySurface(m);
           const cap = getModelCompat({
+            reasonLocale,
+            providerBaseUrl: providers.find(p => p.id === g.provider_id)?.base_url,
             modelId: normalized.value,
             upstreamModelId: normalized.upstreamModelId,
             providerCompat,

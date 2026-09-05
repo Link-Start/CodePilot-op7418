@@ -44,7 +44,7 @@ import { showToast, updateToast } from "@/hooks/useToast";
 import type { TranslationKey } from "@/i18n";
 import { getProviderIcon } from "./provider-presets";
 import { CodexAccountModelsBlock } from "./CodexAccountModelsBlock";
-import { getProviderCompat, getModelCompat, compatLabel, compatTone, compatDotColor, compatTooltip } from "@/lib/runtime-compat";
+import { getProviderCompat, getModelCompat, getModelCompatTier, compatLabel, compatTone, compatDotColor, compatTooltip } from "@/lib/runtime-compat";
 import {
   Select,
   SelectContent,
@@ -1081,18 +1081,16 @@ export function ModelsSection() {
       bundlesOut = bundlesOut
         .map(b => {
           const providerCompat = getProviderCompat(b.provider);
-          // Filter rows by checking each model's compat against the
-          // selected provider tier. The `runtimeFilter` value is a
-          // provider-tier label (e.g. `claude_code_verified`); a row
-          // belongs to the visible set when its provider lives in that
-          // tier AND `getModelCompat` doesn't strip it for being media.
+          // Mixed-protocol providers must be filtered by each model's tier.
           const filteredModels = b.models.filter(m => {
-            if (providerCompat !== runtimeFilter) return false;
-            const cap = getModelCompat({
+            const args = {
+              providerBaseUrl: b.provider.base_url,
               modelId: m.model_id,
               upstreamModelId: m.upstream_model_id || undefined,
               providerCompat,
-            });
+            };
+            if (getModelCompatTier(args) !== runtimeFilter) return false;
+            const cap = getModelCompat(args);
             // Drop media-only rows and rows that have no chat-side flag
             // (a defensive zero-flag check; today this matches if a
             // future capability ever marks a row entirely non-chat).
@@ -1396,7 +1394,7 @@ export function ModelsSection() {
         <Select value={runtimeFilter} onValueChange={(v) => setRuntimeFilter(v as RuntimeFilter)}>
           <SelectTrigger
             className="w-[180px] shrink-0"
-            title={isZh ? '按接入渠道筛选服务商' : 'Filter providers by access channel'}
+            title={isZh ? '按模型接入能力筛选' : 'Filter models by access capability'}
           >
             <SelectValue />
           </SelectTrigger>
@@ -1512,10 +1510,10 @@ export function ModelsSection() {
                     <TooltipTrigger asChild>
                       <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground cursor-help shrink-0">
                         <span className={cn('size-1.5 rounded-full', compatDotColor(providerCompat))} aria-hidden />
-                        {compatLabel(providerCompat, isZh)}
+                        {compatLabel(providerCompat, isZh, provider)}
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent>{compatTooltip(providerCompat, isZh)}</TooltipContent>
+                    <TooltipContent>{compatTooltip(providerCompat, isZh, provider)}</TooltipContent>
                   </Tooltip>
                 )}
                 {/* "默认" role indicator — also lifted up from Row 2.

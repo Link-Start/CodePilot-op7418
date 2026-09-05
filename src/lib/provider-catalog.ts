@@ -817,6 +817,28 @@ export const VENDOR_PRESETS: VendorPreset[] = [
     },
   },
 
+  // TokenDance: protocol-scoped live catalogs; no guessed model defaults.
+  ...(['openai-compatible', 'anthropic'] as const).map((protocol): VendorPreset => ({
+    key: protocol === 'anthropic' ? 'tokendance-anthropic' : 'tokendance',
+    name: protocol === 'anthropic' ? 'TokenDance (Anthropic)' : 'TokenDance',
+    description: 'TokenDance models for Claude Code, Native and Codex',
+    descriptionZh: 'TokenDance 模型，适用于 Claude Code、Native 和 Codex',
+    protocol,
+    authStyle: 'api_key',
+    baseUrl: protocol === 'anthropic' ? 'https://tokendance.space/gateway' : 'https://tokendance.space/gateway/v1',
+    defaultEnvOverrides: {},
+    defaultModels: [],
+    fields: ['api_key'],
+    iconKey: 'tokendance',
+    meta: {
+      billingModel: 'pay_as_you_go',
+      apiKeyUrl: 'https://tokendance.space/',
+      docsUrl: 'https://tokendance.space/docs/ai-integration.md',
+      notes: ['Authorize in your browser or enter an API key. Six featured models are enabled by default. Claude Code requires model support for Anthropic Messages; Kimi K3 currently works with Native/Codex only.'],
+      notesZh: ['可在浏览器授权或填写 API Key。默认展示六个精选模型。Claude Code 按模型的 Anthropic 协议支持情况显示，Kimi K3 当前仅支持 Native/Codex。'],
+    },
+  })),
+
   // ── OpenRouter ──
   {
     key: 'openrouter',

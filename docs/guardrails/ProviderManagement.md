@@ -271,3 +271,14 @@ UI 展示在 Models 页 row 上的 source badge。删除按钮**仅**对 `source
 - **2026-08-24** implementation review 收口后按已发布 git 历史补齐 sonnet→`sonnet` 的 gen-0 `GLM-4.7`、`GLM-5-Turbo`/`GLM-5.2` 与 haiku→`haiku` 的 `GLM-4.5-Air` 指纹，删除 upstream=`glm-5-turbo` 的无来源猜测；gen-0 与后续三行完整目录 fixture 都验证目标槽原位升级、非目标 opus 保留。mutation 后 UI 重拉服务端真源；canonical current 不被额外旧行拖成死路，真正 conflict 有行为断言并显示具体恢复动作。
 - **2026-08-24** presence 进一步明确 enabled-first：hidden canonical 与唯一 enabled direct current wire 并存时返回 `current_enabled` 并指向 enabled row；只有没有 enabled current 时 hidden canonical 才代表 `current_hidden`。
 - **2026-08-26** GLM Coding Plan 当前目录收敛为 GLM-5.3 + GLM-5.3-Flash；旗舰 stable `sonnet` 与默认角色保持 5.3，快速 stable `haiku` 升级 Flash。Models GET 仍为非破坏 merge：迁移已知 pristine haiku 指纹、补当前缺失行，但不删除或停用历史 Turbo/4.7 行；当前目录事实与存量数据清理由不同动作负责。
+
+
+## TokenDance 接入合同（2026-09-05）
+
+- 添加菜单只显示 `tokendance`；同一连接 Native/Codex 使用 Chat Completions，Claude Code 使用 Messages relay。保留旧 `tokendance-anthropic` 编辑/重授权；不改已有 protocol、ID、Key 和聊天。模型能力由 exact-host + 官方协议快照限定，不能把 Kimi K3 等未声明 Messages 的模型标成 Claude 可用；实时目录必须按 `supported_protocols` 筛选，不以名称推测协议。只排除未声明聊天协议的模型；声明 Chat Completions 的 TTS 可以进入发现列表，但默认隐藏，不宣称适合聊天。公开目录不证明 Key 有效，连接测试必须执行真实协议小请求。
+- OAuth 创建的是普通 API Key，沿用加密 provider 存储与原连接 ID；不得变成虚拟订阅或以重建聊天完成重授权。取消/超时/替换 flow 后迟到兑换不得落库，完整 Key/code/verifier 不得进入状态 API、UI 或日志。
+- App URL 固定 `https://www.codepilot.sh/`，同时写授权参数与所有模型请求 `X-App-URL`。精确 origin/path gate 与 `redirect:error` 先于上游网络请求。
+- `TokenDance-Recovery-Action` 只在失败时处理已知值；充值、重新授权、周期额度分别指引，未知值保留原协议错误。Claude 子进程使用 AUTH_TOKEN，通过固定 Messages relay 保留恢复事实；未映射的角色与 small helper 回退到本轮已选模型，不能请求内置 Claude ID，也不覆盖显式角色映射；不得把余额问题折叠成通用鉴权失败或自动删除 Key。
+- 证据：`tokendance.test.ts`（真实 SDK/代理 wire、PKCE、加密与取消竞态）与 `tokendance-integration.spec.ts`（隔离 Dev UI）。真实账号/计费/打包 smoke 另行记录，不能以 mock 代替。
+
+- TokenDance 的 Provider badge 必须说明多协议/按模型支持，不能描述为通用 Anthropic 模板或暗示实测。Models 筛选使用同一模型级 tier，Codex parity 按该连接的实际协议分类；不可用 reason 经 typed dictionary 按 locale 返回。

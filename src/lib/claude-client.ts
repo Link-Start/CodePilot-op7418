@@ -968,6 +968,7 @@ export function streamClaudeSdk(options: ClaudeStreamOptions): ReadableStream<st
         : 'claude_code_ready';
       const subagentModelCompatible = (candidate: typeof resolved.availableModels[number]) => {
         const compatibility = getModelCompat({
+          providerBaseUrl: resolved.provider?.base_url,
           modelId: candidate.modelId,
           upstreamModelId: candidate.upstreamModelId,
           providerCompat: subagentProviderCompat,
@@ -982,6 +983,7 @@ export function streamClaudeSdk(options: ClaudeStreamOptions): ReadableStream<st
         availableModels: resolved.availableModels.filter(subagentModelCompatible),
         roleModels: resolved.roleModels,
         providerCompatible: !resolved.provider || getModelCompat({
+          providerBaseUrl: resolved.provider?.base_url,
           modelId: model || resolved.model || 'inherit',
           upstreamModelId: resolved.upstreamModel,
           providerCompat: subagentProviderCompat,
@@ -3232,6 +3234,11 @@ export async function testProviderConnection(config: {
   providerName?: string;
   providerMeta?: { apiKeyUrl?: string; docsUrl?: string; pricingUrl?: string };
 }): Promise<ConnectionTestResult> {
+  const { isTokenDanceBaseUrl } = await import('./tokendance');
+  if (isTokenDanceBaseUrl(config.baseUrl)) {
+    const { testTokenDanceConnection } = await import('./tokendance-fetch');
+    return testTokenDanceConnection(config);
+  }
   const { getPreset, findPresetForLegacy } = await import('./provider-catalog');
 
   // Look up preset for default model

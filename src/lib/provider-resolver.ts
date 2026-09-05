@@ -1,3 +1,4 @@
+import { isTokenDanceBaseUrl, TOKENDANCE_APP_URL } from './tokendance';
 /**
  * Provider Resolver — unified provider/model resolution for all consumers.
  *
@@ -487,9 +488,17 @@ export function toClaudeCodeEnv(
       }
     }
 
+    if (isTokenDanceBaseUrl(resolved.provider.base_url)) {
+      env.ANTHROPIC_AUTH_TOKEN = apiKey;
+      env.ANTHROPIC_API_KEY = '';
+      env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1';
+    }
+
     // Inject base URL
     if (resolved.provider.base_url) {
-      env.ANTHROPIC_BASE_URL = resolved.provider.base_url;
+      env.ANTHROPIC_BASE_URL = isTokenDanceBaseUrl(resolved.provider.base_url)
+        ? `http://127.0.0.1:${process.env.PORT || '3000'}/api/tokendance/gateway`
+        : resolved.provider.base_url;
     }
 
     // Inject role models as env vars
@@ -516,6 +525,16 @@ export function toClaudeCodeEnv(
     }
     if (opusModel) {
       env.ANTHROPIC_DEFAULT_OPUS_MODEL = opusModel;
+    }
+
+    // TokenDance's Claude Code guide requires aliases to resolve to gateway
+    // model IDs. Unmapped helper/role calls must not use built-in Claude IDs.
+    // Keep explicit role mappings; otherwise use the selected model.
+    if (isTokenDanceBaseUrl(resolved.provider.base_url) && defaultModel) {
+      env.ANTHROPIC_DEFAULT_HAIKU_MODEL ||= defaultModel;
+      env.ANTHROPIC_DEFAULT_SONNET_MODEL ||= defaultModel;
+      env.ANTHROPIC_DEFAULT_OPUS_MODEL ||= defaultModel;
+      env.ANTHROPIC_SMALL_FAST_MODEL ||= defaultModel;
     }
 
     // Inject extra headers
@@ -1162,6 +1181,10 @@ function buildResolution(
 
   // Parse JSON fields
   const headers = safeParseJson(provider.headers_json);
+  if (isTokenDanceBaseUrl(provider.base_url)) {
+    for (const key of Object.keys(headers)) if (key.toLowerCase() === 'x-app-url') delete headers[key];
+    headers['X-App-URL'] = TOKENDANCE_APP_URL;
+  }
   const preset = findPresetForLegacy(
     provider.base_url,
     provider.provider_type,
@@ -1294,6 +1317,7 @@ function buildResolution(
     if (!id) return false;
     const entry = modelIndex.get(id);
     const cap = getModelCompat({
+      providerBaseUrl: provider.base_url,
       modelId: id,
       upstreamModelId: entry?.upstreamModelId,
       providerCompat,

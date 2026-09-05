@@ -8,6 +8,7 @@
 
 | 文件 | 主题 |
 |------|------|
+| [tokendance-integration.md](tokendance-integration.md) | TokenDance 单连接跨 Runtime、六款精选模型、PKCE API Key 授权、归因与失败恢复 |
 | chat-fixes-review-2026-09-05.md | **本聊天全部修改的 Claude 审查文案**：GLM 冲突恢复、旧聊天同 Runtime 跨模型/Provider、长历史与图片续接、Astra/OAuth；含用户取舍、独立核对点、审查后续修复/Fable 5.1 接入与真实 smoke 边界 |
 | windows-unsigned-auto-update.md | **Windows 无签名自动更新技术交接**：GitHub 单一信任根、unsigned NSIS provenance、`latest.yml`/EXE blockmap、差分→完整包回退、Immutable Releases/ruleset/Action SHA 门禁与 RC-A→RC-B 验收矩阵 |
 | windows-runtime-recovery-hardening.md | **Windows Runtime P0/P1 加固与跨机复查**：Path Identity、三 Runtime Doctor、Codex sandbox 真实状态、复制固定官方命令并打开 PowerShell、safeStorage + AES-GCM Provider secret 迁移、另一台 Windows 的 smoke 清单 |

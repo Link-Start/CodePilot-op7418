@@ -1063,7 +1063,7 @@ function buildCodexAccountResolution(opts: ResolveOptions): ResolvedProvider {
 
 function buildOpenAIOAuthResolution(opts: ResolveOptions): ResolvedProvider {
   const definition = getManagedVirtualProviderDefinition('openai-oauth');
-  const model = opts.model || opts.sessionModel || definition.models[0].modelId;
+  const model = opts.model || opts.sessionModel || definition.models[0]?.modelId || '';
 
   const catalogEntry = definition.models.find(m => m.modelId === model);
 

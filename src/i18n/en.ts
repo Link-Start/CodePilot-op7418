@@ -2165,7 +2165,7 @@ const en = {
   'provider.search.openrouter.upgradeButton': 'Upgrade catalog',
   'provider.search.openrouter.upgrading': 'Upgrading...',
   'provider.search.openrouter.identityConflict': 'Review identity conflict',
-  'provider.search.openrouter.identityConflictDetail': 'Rows {ids} claim this model identity. Review them in Models before retrying.',
+  'provider.search.openrouter.identityConflictDetail': 'Existing model rows {ids} claim this ID, independently of role mappings. Review the rows, including hidden ones.',
   'provider.search.openrouter.mutationIdentityConflict': 'Rows {ids} claimed this identity during the update. Candidates were reloaded; review Models before retrying.',
   'provider.search.openrouter.reviewModels': 'Review models',
   'provider.search.openrouter.adding': 'Adding...',

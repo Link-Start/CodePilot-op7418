@@ -96,8 +96,16 @@ function resolveWindow(key: string): number | null {
 
 export function getContextWindow(
   model: string,
-  options?: { context1m?: boolean; upstream?: string },
+  options?: { context1m?: boolean; upstream?: string; channel?: 'api' | 'codex' },
 ): number | null {
+  // Astra API and Codex backend have different default input budgets.
+  // A caller without transport evidence must not display either as known.
+  // openai/codex 459a79eb, models-manager/models.json (2026-09-05).
+  const codexDefaultModels = ['gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini'];
+  if (options?.channel === 'codex' && codexDefaultModels.includes(options.upstream || model)) return 258_400;
+  if ((options?.upstream || model) === 'gpt-6-astra') {
+    return options?.channel === 'codex' ? 258_400 : options?.channel === 'api' ? 1_050_000 : null;
+  }
   // Prefer the upstream model ID when known — it unambiguously selects
   // between alias variants (e.g. `opus` on first-party Anthropic is
   // claude-opus-4-7 but on Bedrock/Vertex it's Opus 4.6). Fall through

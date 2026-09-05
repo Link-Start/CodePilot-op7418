@@ -120,6 +120,8 @@ catalog-only plan 有一个更窄的持久升级例外：Settings > Models 的 p
 
 Add Model 对话框不能再用 `alreadyAdded:boolean` 压平身份状态。服务端必须区分 `current_enabled`、`current_hidden`、`legacy_upgrade_available`、`identity_conflict`、`missing`；隐藏项返回真实 `existingModelId` 并提供 PATCH 重新启用，legacy 只在上述精确指纹成立时升级。同一 current wire 同时有 hidden canonical 与唯一 enabled direct row 时，enabled row 是真实可用 identity，不得被 hidden canonical 整体拖成 hidden/conflict；多个 enabled current 或其他歧义仍 fail closed。冲突项不静默覆盖目标行，必须返回 typed 409 + 真实 conflict model ids，并提供进入 Models 的恢复动作；Renderer 必须本地化 typed code，且 2xx/409 后都重拉候选与父模型列表（merge 可能已补其它目录行），不能显示英文 route fallback 或乐观翻成本地成功。catalog-only plan 的精确目录候选若重新添加，由 POST 服务端使用 catalog 真源恢复 capabilities/source/order；renderer 只传身份，不能把目录模型降级为 manual 空能力行。
 
+冲突恢复入口必须真正显示对应模型记录：切到“全部”、清空模型搜索与渠道筛选，并滚动/聚焦服务端返回的真实冲突行。不能只关闭 Add Model 弹窗；普通关闭则保留原筛选。恢复查看本身不得调用模型写接口、启用、覆盖或删除行，文案应区分模型行身份与 `role_models_json` 角色映射。用户记录的具体来源未知时，不得靠扩大迁移范围来消除提示。
+
 ### 4.2 user_edited 守护
 
 `provider_models.user_edited` 标记用户改过的行。`applyDiscoveryDiff()` (`db.ts:1986`) 必须保留这些行的 `display_name` / `capabilities_json` / `enabled` / `sort_order`，仅刷新 `upstream_model_id` / `last_refreshed_at` / `source`。
@@ -235,6 +237,7 @@ UI 展示在 Models 页 row 上的 source badge。删除按钮**仅**对 `source
 | `src/__tests__/unit/provider-resolver.test.ts` | catalog merge / DB 优先 / hidden 抑制 / role models 拉取 |
 | `src/__tests__/unit/foundation-refresh-user-path-contract.test.ts` | Models GET 的真实三行存量套餐升级、Add Model stable/upstream identity 与五态/conflict recovery、hidden 恢复、catalog 重加能力保真、零写幂等与非 plan 反例 |
 | `src/__tests__/unit/catalog-capabilities-roundtrip.test.ts` | catalog metadata round-trip、read merge 用户保护、upstream 去重、冲突安全与排序避让 |
+| `src/__tests__/e2e/model-identity-conflict.spec.ts` | 真实临时 DB + 编译页面：隐藏/改名旧 haiku、空角色映射，冲突查看清筛选并定位；普通关闭保留筛选；模型数据前后相同，无模型写请求 |
 | `src/__tests__/unit/deepseek-v4-flash-adaptation.test.ts` | Flash 0731 + Pro 0813 exact preset/model wire 门、legacy env 默认层叠、DeepSeek Anthropic effort + Codex Responses 请求形状、Claude suffix/聚合渠道反例 |
 | `src/__tests__/unit/qwen-token-plan-catalog.test.ts` | Qwen 三套餐白名单、默认角色、usage policy |
 | `src/__tests__/unit/xai-provider.test.ts` | xAI API Key preset、Responses、官方 endpoint 边界 |
@@ -250,6 +253,8 @@ UI 展示在 Models 页 row 上的 source badge。删除按钮**仅**对 `source
 加新 provider 字段 / 新 preset 时至少跑 provider-preset.test.ts + provider-resolver.test.ts。
 
 ## 10. 设计决策日志
+
+- **2026-09-04** Windows 用户反馈经 macOS 隔离复现后，只修确定的冲突恢复 UI 缺口：原按钮只关闭弹窗，hidden 行仍被默认 enabled 筛选挡住。新增清筛选、滚动、聚焦与短暂高亮，双语文案说明角色映射与模型记录独立；用户真实旧行来源待确认，身份判定与数据迁移保护保持原合同。
 
 - **2026-04-25** 已连接服务默认页**不**展示未添加 — 解决"用户分不清自己连了哪些"。Add Service 单独入口
 - **2026-04-25** Add Service / 已连接服务建立对齐分组；**2026-07-21** 随独立 OAuth/Code Plan 信息架构更新为 **5 段分组**。

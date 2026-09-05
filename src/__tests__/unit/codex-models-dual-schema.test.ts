@@ -17,6 +17,8 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   listCodexModels,
+  codexUsableContextWindow,
+  getCodexContextBudget,
   buildCodexProviderModelGroup,
   getCachedCodexEffortLevels,
   invalidateCodexModelsCache,
@@ -259,4 +261,63 @@ describe('getCachedCodexEffortLevels — per-model allowlist source', () => {
       'a stale allowlist must not outlive the account it came from',
     );
   });
+});
+
+
+describe('Codex model pagination and vision', () => {
+  beforeEach(() => invalidateCodexModelsCache());
+  it('finds Astra on page two and deduplicates the catalog', async () => {
+    const cursors: unknown[] = [];
+    const group = await buildCodexProviderModelGroup({}, async () => ({ client: {
+      request: async <T>(_method: string, params: unknown): Promise<T> => {
+        const cursor = (params as { cursor?: string }).cursor;
+        cursors.push(cursor);
+        return (cursor ? { data: [modelEntry(), modelEntry({ id:'gpt-6-astra', model:'gpt-6-astra', inputModalities:['text','image'] })], nextCursor:null }
+          : { data:[modelEntry()], nextCursor:'second' }) as T;
+      },
+    }}));
+    assert.deepEqual(cursors,[undefined,'second']);
+    assert.equal(group?.models.length,2);
+    assert.equal(group?.models.find(m=>m.value==='gpt-6-astra')?.capabilities?.vision,true);
+    assert.equal(group?.models[0].capabilities?.vision,false);
+  });
+  it('rejects repeated cursors rather than hanging or caching a partial catalog', async () => {
+    await assert.rejects(listCodexModels({},async()=>({client:{request:async <T>() => ({data:[modelEntry()],nextCursor:'loop'}) as T}})),/pagination/);
+  });
+});
+
+
+it('Codex context budget honors effective override, maximum and smaller windows', () => {
+  const metadata = {context_window:272000,max_context_window:872000,effective_context_window_percent:95};
+  assert.equal(codexUsableContextWindow(metadata),258400);
+  assert.equal(codexUsableContextWindow(metadata,1050000),828400);
+  assert.equal(codexUsableContextWindow(metadata,100000),95000);
+  assert.equal(codexUsableContextWindow({context_window:'unknown'}),null);
+  assert.equal(codexUsableContextWindow({...metadata,effective_context_window_percent:200}),null);
+});
+
+
+it('reads project-effective config and same-home catalog for the selected Codex model', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const home = fs.mkdtempSync(path.join(os.tmpdir(),'codex-window-fixture-'));
+  const old = process.env.CODEPILOT_CODEX_HOME;
+  process.env.CODEPILOT_CODEX_HOME = home;
+  try {
+    fs.writeFileSync(path.join(home,'models_cache.json'),JSON.stringify({models:[{slug:'gpt-6-astra',context_window:272000,max_context_window:872000}]}));
+    const window = await getCodexContextBudget('gpt-6-astra','/fixture/project',async()=>({client:{
+      request: async <T>(method: string, params: unknown): Promise<T> => {
+        assert.equal(method,'config/read');
+        assert.deepEqual(params,{includeLayers:false,cwd:'/fixture/project'});
+        return {config:{model_context_window:1000000}} as T;
+      },
+    }}));
+    assert.equal(window,828400);
+    assert.equal(await getCodexContextBudget('gpt-6-astra',undefined,async()=>{throw Error('offline')}),null);
+  } finally {
+    if (old === undefined) delete process.env.CODEPILOT_CODEX_HOME;
+    else process.env.CODEPILOT_CODEX_HOME = old;
+    fs.rmSync(home,{recursive:true,force:true});
+  }
 });

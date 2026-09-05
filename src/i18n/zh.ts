@@ -2136,7 +2136,7 @@ const zh: Record<TranslationKey, string> = {
   'provider.search.openrouter.upgradeButton': '升级目录',
   'provider.search.openrouter.upgrading': '正在升级…',
   'provider.search.openrouter.identityConflict': '需处理身份冲突',
-  'provider.search.openrouter.identityConflictDetail': '模型行 {ids} 占用了这个身份，请先在模型列表中核对后再试。',
+  'provider.search.openrouter.identityConflictDetail': '已有模型记录 {ids} 占用了这个 ID，与角色映射是否设置无关。可查看对应记录（包含已隐藏项）。',
   'provider.search.openrouter.mutationIdentityConflict': '模型行 {ids} 在提交期间占用了这个身份。候选列表已重新加载，请先在模型列表中核对。',
   'provider.search.openrouter.reviewModels': '查看模型列表',
   'provider.search.openrouter.adding': '正在添加…',
